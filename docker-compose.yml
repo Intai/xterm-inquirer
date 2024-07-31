@@ -1,0 +1,43 @@
+volumes:
+  commands_node_modules:
+  server_node_modules:
+  nodejs_node_modules:
+
+services:
+  server:
+    container_name: xterm-inquirer-server
+    image: xterm/server
+    build:
+      context: ./server
+      additional_contexts:
+        commands: ./commands
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+        PORT: 8081
+    ports:
+      - 8081:8081
+    volumes:
+      - ./server:/usr/src/app
+      - server_node_modules:/usr/src/app/node_modules
+      - commands_node_modules:/usr/src/commands/node_modules
+    command: npm run dev
+
+  web:
+    container_name: xterm-inquirer-web
+    image: xterm/web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+        TIMESTAMP: 1659413092708
+        PORT: ${PORT:-8080}
+    ports:
+      - ${PORT:-8080}:${PORT:-8080}
+    environment:
+      - WEBSOCKET_URI=${WEBSOCKET_URI:-}
+    volumes:
+      - ./web:/usr/src/app
+      - nodejs_node_modules:/usr/src/app/node_modules
+    command: npm run dev

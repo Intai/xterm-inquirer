@@ -1,0 +1,8 @@
+.DS_Store
+.tags*
+.cache
+dist
+coverage
+node_modules
+local.settings.json
+database

@@ -1,0 +1,30 @@
+{
+  "name": "xterm-inquirer",
+  "version": "1.0.0",
+  "description": "Xterm Inquirer",
+  "homepage": "https://xterm-inquirer.dev",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Intai/xterm-inquirer.git"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "dev": "nodemon ./index.mjs",
+    "start": "pm2 start --no-daemon index.mjs"
+  },
+  "dependencies": {
+    "@xterm/headless": "^5.5.0",
+    "config": "^3.3.7",
+    "node-pty": "^1.0.0",
+    "pm2": "^5.2.0",
+    "ramda": "^0.30.0",
+    "uuid": "^10.0.0",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "nodemon": "^3.0.1"
+  }
+}
