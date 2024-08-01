@@ -1,12 +1,11 @@
+import { applySpec, identity, pipe } from 'ramda'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { select } from '@inquirer/prompts'
 import chalk from 'chalk'
 import { v4 as uuidv4 } from 'uuid'
-import { Level } from 'level'
 import { decode } from 'html-entities'
-
-const db = new Level('./quiz/database', { valueEncoding: 'json' })
+import { getDatabase } from './app.mjs'
 
 const shuffleArray = array => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -16,10 +15,13 @@ const shuffleArray = array => {
   return array
 }
 
-const toChoice = value => ({
-  name: value,
-  value,
-})
+const toChoice = pipe(
+  decode,
+  applySpec({
+    name: identity,
+    value: identity,
+  }),
+)
 
 yargs(hideBin(process.argv))
   .scriptName('quiz')
@@ -39,6 +41,7 @@ yargs(hideBin(process.argv))
       // load random quiz questions from an open api.
       const response = await fetch(`https://opentdb.com/api.php?amount=${number}`)
       const json = await response.json()
+      const db = getDatabase()
       await db.open()
       await db.clear()
       await Promise.all(json.results.map(result => db.put(`quiz.question.${uuidv4()}`, result)))
@@ -52,6 +55,7 @@ yargs(hideBin(process.argv))
   .command('play', 'Ask quiz questions',
     yargs => yargs.version(false),
     async () => {
+      const db = getDatabase()
       await db.open()
       const values = await db.values().all()
 
@@ -67,7 +71,7 @@ yargs(hideBin(process.argv))
         // if the selected answer is incorrect.
         if (answer !== quiz.correct_answer) {
           // print the correct answer.
-          console.log('Correct answer is', chalk.red(quiz.correct_answer))
+          console.log('Correct answer is', chalk.red(decode(quiz.correct_answer)))
         }
       }
       if (values.length <= 0) {
@@ -75,5 +79,16 @@ yargs(hideBin(process.argv))
       }
       await db.close()
     })
+
+  // clear all quiz questions.
+  .command('clear', 'Delete all quiz questions',
+    yargs => yargs.version(false),
+    async () => {
+      const db = getDatabase()
+      await db.open()
+      await db.clear()
+      await db.close()
+    },
+  )
   .demandCommand()
   .parse()

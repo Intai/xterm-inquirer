@@ -1,4 +1,4 @@
 import config from 'config'
-import { startWebSocketServer } from './src/server.mjs'
+import { startServer } from './src/server.mjs'
 
-startWebSocketServer({ port: config.get('port') })
+startServer({ port: config.get('port') })

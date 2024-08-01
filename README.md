@@ -27,3 +27,19 @@ They are implemented in `./commands` folder and included in `./server/config/def
   },
 }
 ```
+
+After quiz questions are loaded, they are also accessible through a sample GET endpoint http://localhost:8081/quiz
+```
+[{
+  "type": "multiple",
+  "difficulty": "medium",
+  "category": "Science: Computers",
+  "question": "What is the main CPU is the Sega Mega Drive / Sega Genesis?",
+  "correct_answer": "Motorola 68000",
+  "incorrect_answers": [
+    "Zilog Z80",
+    "Yamaha YM2612",
+    "Intel 8088"
+  ]
+}]
+```

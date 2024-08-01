@@ -1,5 +1,7 @@
 import path from 'path'
 import pty from 'node-pty'
+import http from 'node:http'
+import express from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import WebSocket, { WebSocketServer } from 'ws'
 import xterm from '@xterm/headless'
@@ -11,11 +13,17 @@ import {
   setupAliases,
 } from './common/utils/shell.mjs'
 import { logDebug, logError, logInfo } from './common/utils/logger.mjs'
+import { setupExpressApp } from '../../commands/app.mjs'
 
-export async function startWebSocketServer({ port }) {
-  const wss = new WebSocketServer({ port })
+export async function startServer({ port }) {
+  const app = express()
+  const server = http.createServer(app)
+  const wss = new WebSocketServer({ noServer: true })
   const shell = getShell()
 
+  // setup rest endpoints.
+  setupExpressApp(app)
+  // listen to websocket connections.
   wss.on('connection', ws => {
     const id = uuidv4()
     logInfo('Connected', id)
@@ -78,6 +86,17 @@ export async function startWebSocketServer({ port }) {
     })
   })
 
-  logInfo(`🚀 WebSocket ready at ws://localhost:${port}`)
+  server.on('upgrade', (request, socket, head) => {
+    // socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
+    // socket.destroy()
+    wss.handleUpgrade(request, socket, head, ws => {
+      wss.emit('connection', ws, request)
+    })
+  })
+
+  server.listen(port, () => {
+    logInfo(`API ready at http://localhost:${port}`)
+    logInfo(`WebSocket ready at ws://localhost:${port}`)
+  })
   return wss
 }
